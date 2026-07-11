@@ -1,0 +1,9 @@
+:root { color-scheme: dark; font-family: system-ui, sans-serif; }
+body { margin: 0; background: #171717; color: #f5f5f5; }
+main { width: min(480px, calc(100vw - 48px)); margin: 56px auto; }
+h1 { margin: 0 0 10px; font-size: 24px; }
+p { color: #c8c8c8; line-height: 1.4; }
+.folder { min-height: 22px; overflow-wrap: anywhere; }
+button { width: 100%; margin-top: 10px; padding: 11px 12px; border: 0; border-radius: 7px; background: #1769ff; color: white; cursor: pointer; font-weight: 700; }
+button:disabled { cursor: default; opacity: .45; }
+#choose-folder { background: #343434; }

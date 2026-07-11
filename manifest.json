@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Behance Project Image Downloader",
+  "version": "1.2.0",
+  "description": "Downloads unique Behance project module images from the current project page.",
+  "permissions": ["activeTab", "scripting", "storage", "downloads"],
+  "host_permissions": [
+    "https://www.behance.net/*",
+    "https://mir-s3-cdn-cf.behance.net/*"
+  ],
+  "action": {
+    "default_title": "Download Behance project images",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

@@ -1,0 +1,12 @@
+:root { color-scheme: dark; font-family: system-ui, sans-serif; }
+body { width: 250px; margin: 0; background: #171717; color: #f5f5f5; }
+main { padding: 16px; }
+h1 { margin: 0 0 8px; font-size: 17px; }
+p { min-height: 38px; margin: 0 0 12px; color: #c8c8c8; font-size: 13px; line-height: 1.35; }
+label { display: block; margin-bottom: 5px; color: #c8c8c8; font-size: 12px; }
+.toggle { margin: 9px 0; font-size: 13px; }
+.toggle input { vertical-align: middle; }
+select { width: 100%; padding: 8px; border: 1px solid #4a4a4a; border-radius: 6px; background: #252525; color: #f5f5f5; }
+button { width: 100%; margin-top: 8px; padding: 9px 10px; border: 0; border-radius: 6px; background: #1769ff; color: white; cursor: pointer; font-weight: 600; }
+button:disabled { cursor: default; opacity: .45; }
+#scan { background: #343434; }
