@@ -68,6 +68,7 @@ async function save(indices) {
   saveButton.dataset.state = "saving";
   delete saveButton.dataset.tone;
   for (const index of indices) tiles[index].dataset.state = "pending";
+  status.textContent = `Saving into ${directoryPath}`;
 
   let done = 0;
   let next = 0;
@@ -129,7 +130,7 @@ saveButton.addEventListener("click", async () => {
 
 function renderTiles() {
   tiles = images.map(({ url }, index) => {
-    const tile = document.createElement("li");
+    const tile = document.createElement("figure");
     tile.className = "tile";
     const image = document.createElement("img");
     image.src = url;
@@ -141,7 +142,25 @@ function renderTiles() {
     tile.insertAdjacentHTML("beforeend", `<span class="failed">${failedIcon}<span class="visually-hidden">Failed</span></span>`);
     return tile;
   });
-  grid.replaceChildren(...tiles);
+  layoutGrid();
+  new ResizeObserver(layoutGrid).observe(grid);
+}
+
+// Masonry: tiles keep their natural height and are dealt left to right into
+// columns, so reading order stays the project order. Heights are unknown
+// until images load, so placement does not depend on them.
+let columnCount = 0;
+function layoutGrid() {
+  const count = Math.max(2, Math.floor(grid.clientWidth / 280));
+  if (count === columnCount) return;
+  columnCount = count;
+  const columns = Array.from({ length: count }, () => {
+    const column = document.createElement("div");
+    column.className = "column";
+    return column;
+  });
+  tiles.forEach((tile, index) => columns[index % count].append(tile));
+  grid.replaceChildren(...columns);
 }
 
 void chrome.storage.session.get(["scannedBehanceImages", "scannedBehanceTitle", "keepOriginalNames", "projectFolder"]).then(({

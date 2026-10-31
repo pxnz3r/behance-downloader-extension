@@ -1,4 +1,4 @@
-main { width: min(960px, calc(100vw - 48px)); margin: 0 auto 48px; }
+main { padding: 0 32px 48px; }
 
 header {
   position: sticky;
@@ -16,22 +16,18 @@ header {
 h1 { font-size: 22px; line-height: 1.25; }
 .primary { min-width: 200px; }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
+.grid { display: flex; align-items: flex-start; gap: 12px; }
+.column { display: flex; flex: 1; flex-direction: column; gap: 12px; min-width: 0; }
 .tile {
   position: relative;
-  aspect-ratio: 4 / 5;
+  margin: 0;
   overflow: hidden;
   border-radius: 12px;
   background: var(--surface);
 }
-.tile img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+/* Until an image loads its height is unknown; hold a 4:5 slot. */
+.tile:not(.loaded) { aspect-ratio: 4 / 5; }
+.tile img { display: block; width: 100%; height: auto; opacity: 0; }
 .tile.loaded img { opacity: 1; }
 /* Keeps light image edges from bleeding into the page. */
 .tile::after {
