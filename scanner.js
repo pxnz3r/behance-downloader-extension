@@ -1,15 +1,14 @@
 // This file is injected into the active page by popup.js.
 globalThis.collectBehanceProjectImages = function collectBehanceProjectImages() {
-  const prefix = "https://mir-s3-cdn-cf.behance.net/project_modules/";
-  const imageExtension = /\.(?:jpe?g|png|webp)(?:\?|$)/i;
+  // Project images live under /project_modules/. Recommendation covers use
+  // /projects/ and avatars use /user/, so the path alone keeps them out.
+  const moduleUrl = /https:\/\/[a-z0-9-]+\.behance\.net\/project_modules\/[^\s"'<>\\),]+/g;
+  const imageExtension = /\.(?:jpe?g|png|gif|webp)(?:\?|$)/i;
   const candidates = new Map();
 
   const assetIdFor = (url) => {
-    if (!url.startsWith(prefix) || !imageExtension.test(url)) return null;
-    return new URL(url).pathname
-      .split("/")
-      .at(-1)
-      .replace(/\.(?:jpe?g|png|webp)$/i, "");
+    if (!imageExtension.test(url)) return null;
+    return new URL(url).pathname.split("/").at(-1).replace(/\.[a-z]+$/i, "");
   };
 
   const addText = (value, order) => {
@@ -18,46 +17,41 @@ globalThis.collectBehanceProjectImages = function collectBehanceProjectImages() 
       .replaceAll("\\u002F", "/")
       .replaceAll("\\/", "/")
       .replaceAll("&amp;", "&");
-    const matches = text.match(/https:\/\/mir-s3-cdn-cf\.behance\.net\/project_modules\/[^\s"'<>\\)]+/g) || [];
-
-    for (const match of matches) {
+    for (const match of text.match(moduleUrl) || []) {
       const url = match.replace(/[;,]+$/, "");
       if (assetIdFor(url) && !candidates.has(url)) candidates.set(url, order);
     }
   };
 
-  // Only Behance's actual project-image modules count. Do not scan the entire
-  // page source: it includes recommendations, hidden data, and cached assets.
-  const modules = [...document.querySelectorAll(".js-project-module--image")];
-  modules.forEach((module, order) => {
-    addText(module.innerHTML, order);
-    module.querySelectorAll("img, source").forEach((element) => {
-      addText(element.src, order);
-      addText(element.currentSrc, order);
-      addText(element.getAttribute("src"), order);
-      addText(element.getAttribute("srcset"), order);
-    });
+  // Read rendered image elements only, in page order. Their markup holds src,
+  // srcset and lazy-load data attributes; scripts and hidden page state do not
+  // count, because they include other projects' data.
+  document.querySelectorAll("img, source").forEach((element, order) => {
+    addText(element.outerHTML, order);
+    addText(element.currentSrc, order);
   });
 
   // Resource entries can supply a larger variant, but only for an image that
-  // was already found in a visible project module.
-  const moduleOrderByAsset = new Map();
+  // was already found on the page.
+  const orderByAsset = new Map();
   for (const [url, order] of candidates) {
     const assetId = assetIdFor(url);
-    if (!moduleOrderByAsset.has(assetId)) moduleOrderByAsset.set(assetId, order);
+    if (!orderByAsset.has(assetId)) orderByAsset.set(assetId, order);
   }
   performance.getEntriesByType("resource").forEach((entry) => {
-    const assetId = assetIdFor(entry.name);
-    const order = moduleOrderByAsset.get(assetId);
+    if (!entry.name.includes("/project_modules/")) return;
+    const order = orderByAsset.get(assetIdFor(entry.name));
     if (order !== undefined) addText(entry.name, order);
   });
 
+  // The size segment after /project_modules/ is "source", "fs" (1920 wide),
+  // "disp" (600 wide) or names with a width such as max_3840, 1400_opt_1.
   const quality = (url) => {
-    if (url.includes("/max_3840/")) return 5;
-    if (url.includes("/2800/")) return 4;
-    if (url.includes("/1400/")) return 3;
-    if (url.includes("/fs_webp/")) return 2;
-    return 1;
+    const size = url.match(/\/project_modules\/([^/]+)\//)?.[1] || "";
+    if (size === "source") return 100000;
+    if (size.startsWith("fs")) return 1920;
+    if (size === "disp") return 600;
+    return Number(size.match(/\d+/)?.[0] || 0);
   };
 
   const bestByAsset = new Map();

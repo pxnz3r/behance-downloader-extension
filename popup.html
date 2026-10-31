@@ -32,8 +32,9 @@
       </fieldset>
 
       <div class="switches">
-        <label class="switch">Project folder <input id="project-folder" type="checkbox" role="switch" checked></label>
-        <label class="switch">Original file names <input id="keep-original" type="checkbox" role="switch"></label>
+        <label class="switch">Save in a project folder <input id="project-folder" type="checkbox" role="switch" checked></label>
+        <label class="switch">Keep original file names <input id="keep-original" type="checkbox" role="switch"></label>
+        <p id="path" class="status path"></p>
       </div>
 
       <button id="save" class="primary" type="button" disabled>
@@ -41,6 +42,7 @@
         <span class="label">Save images</span>
       </button>
     </main>
+    <script src="filenames.js"></script>
     <script src="ui.js"></script>
     <script src="popup.js"></script>
   </body>

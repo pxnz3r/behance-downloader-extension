@@ -11,7 +11,7 @@
 
 - Chrome's Downloads API can save only under the browser's configured Downloads directory. That is why arbitrary-folder downloads use the File System Access API on `downloader.html`.
 - The native folder picker must be opened from a user click; do not move that call behind an automatic action.
-- Keep `scanner.js` scoped to `.js-project-module--image`. Scanning the full document or every network resource overcounts unrelated assets.
+- `scanner.js` reads rendered `img`/`source` elements and keeps only `/project_modules/` URLs. It does not rely on Behance class names (the old `.js-project-module--image` selector stopped matching). Do not scan script tags or every network resource: they include other projects' images.
 - The service worker stores temporary Quick mode filenames in `chrome.storage.session` so the filename-determination event can use them.
 
 ## Manual test checklist

@@ -7,7 +7,7 @@ function originalFilename(url) {
 }
 
 function numberedFilename(url, index, total) {
-  const extension = url.match(/\.(jpe?g|png|webp)(?:\?|$)/i)[1].toLowerCase();
+  const extension = url.match(/\.(jpe?g|png|gif|webp)(?:\?|$)/i)[1].toLowerCase();
   const number = String(index + 1).padStart(String(total).length, "0");
   return `image ${number}.${extension}`;
 }

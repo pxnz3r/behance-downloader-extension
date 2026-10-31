@@ -7,7 +7,7 @@ Chrome extension that saves every image in the Behance project you have open, in
 ## What it does
 
 - Reads only the project's image modules, so recommendations and cached page assets are skipped.
-- Keeps one file per image and picks the largest variant found (`max_3840`, then `2800`, `1400`, `fs_webp`).
+- Keeps one file per image and picks the largest variant the page loaded.
 - Scans the project as soon as you open the popup.
 - Saves straight to Chrome's Downloads folder, or to any folder you pick.
 - In folder mode, a preview grid shows each image as it saves (four at a time); failed images can be retried on their own.

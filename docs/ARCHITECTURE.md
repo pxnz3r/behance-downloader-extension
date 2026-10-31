@@ -15,10 +15,10 @@
 ## Scan pipeline
 
 1. The popup injects `scanner.js` into the active Behance tab.
-2. The scanner reads only `.js-project-module--image` containers, in DOM order.
-3. Each image module contributes its loaded image URLs.
+2. The scanner reads every rendered `img` and `source` element in DOM order, including `srcset` and lazy-load attributes.
+3. Only URLs under `/project_modules/` count; recommendation covers (`/projects/`) and avatars (`/user/`) are skipped by path.
 4. Network resource entries are considered only when they match an image already found in a project module; this lets the scanner upgrade an image to a better CDN size without adding unrelated page assets.
-5. Variants are grouped by their asset filename. The preferred path order is `max_3840`, `2800`, `1400`, then `fs_webp`.
+5. Variants are grouped by their asset filename. The largest variant wins: `source`, then the width in the size segment (`max_3840`, `fs` = 1920, `1400`, `disp` = 600).
 
 ## Download modes
 

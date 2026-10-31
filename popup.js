@@ -4,6 +4,7 @@ const saveButton = document.querySelector("#save");
 const destinations = document.querySelectorAll('input[name="destination"]');
 const keepOriginal = document.querySelector("#keep-original");
 const projectFolder = document.querySelector("#project-folder");
+const path = document.querySelector("#path");
 const optionsKey = "popupOptions";
 let scan = { title: "", images: [] };
 // idle: nothing to save, empty: scan found nothing, ready: can save, done: downloads started.
@@ -15,6 +16,22 @@ function quickMode() {
 
 function saveLabel() {
   return `Save ${plural(scan.images.length, "image")}${quickMode() ? "" : " to…"}`;
+}
+
+// Shows where the first file will land, so the switches explain themselves.
+function showPath() {
+  const [first] = scan.images;
+  const file = keepOriginal.checked && first ? originalFilename(first.url) : first
+    ? imageFilename(first.url, 0, scan.images.length, false)
+    : keepOriginal.checked ? "original name.jpg" : "image 01.jpg";
+  const parts = [quickMode() ? "Downloads" : "Your folder"];
+  if (projectFolder.checked) parts.push(projectFolderName(scan.title));
+  parts.push(file);
+  path.replaceChildren("Saves as ", ...parts.flatMap((part, index) => {
+    const bold = document.createElement("b");
+    bold.textContent = part;
+    return index ? ["/", bold] : [bold];
+  }));
 }
 
 function setMode(nextMode, label) {
@@ -58,7 +75,7 @@ async function scanPage() {
   title.textContent = scan.title || "Behance project";
   title.title = title.textContent;
   if (!scan.images.length) {
-    status.textContent = "No images loaded yet. Scroll through the project, then scan again.";
+    status.textContent = "No project images found. Scroll to the end of the project so every image loads, then scan again.";
     setMode("empty", "Scan again");
     return;
   }
@@ -89,6 +106,7 @@ async function startQuickDownload() {
 saveButton.addEventListener("click", async () => {
   if (mode === "empty") {
     await scanPage();
+    showPath();
     return;
   }
   if (mode !== "ready") return;
@@ -108,7 +126,10 @@ saveButton.addEventListener("click", async () => {
   window.close();
 });
 
-for (const input of [...destinations, keepOriginal, projectFolder]) input.addEventListener("change", saveOptions);
+for (const input of [...destinations, keepOriginal, projectFolder]) {
+  input.addEventListener("change", saveOptions);
+  input.addEventListener("change", showPath);
+}
 for (const input of destinations) {
   input.addEventListener("change", () => {
     if (mode === "ready") setLabel(saveButton, saveLabel());
@@ -121,6 +142,7 @@ void chrome.storage.local.get(optionsKey).then(({ [optionsKey]: options }) => {
     keepOriginal.checked = options.keepOriginal;
     projectFolder.checked = options.projectFolder;
   }
+  showPath();
   requestAnimationFrame(() => document.body.classList.add("ready"));
-  return scanPage();
+  return scanPage().then(showPath);
 });
