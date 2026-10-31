@@ -5,11 +5,12 @@
 | File | Responsibility |
 | --- | --- |
 | `manifest.json` | Declares the Manifest V3 extension, permissions, popup, and service worker. |
-| `popup.html` / `popup.js` | Provides scan controls and the Quick mode, naming, and project-folder toggles. Remembers them in `chrome.storage.local`. |
+| `popup.html` / `popup.js` | Scans the active tab when opened. Holds the destination choice (Downloads or any folder, stored as `quickMode`), naming, and project-folder switches, remembered in `chrome.storage.local`. One primary button carries the flow: save, scan again, or downloads started. |
+| `ui.css` / `ui.js` | Shared monochrome tokens (light and dark), the primary button with its progress fill, and `setLabel()`, which blurs in only the characters that change in a button label. |
 | `scanner.js` | Runs in the active Behance page and returns the project title plus ordered, deduplicated project image URLs. |
 | `filenames.js` | Shared filename helpers: numbered and original names, and the sanitized project folder name. Loaded by `background.js` (`importScripts`) and `downloader.html`. |
 | `background.js` | Runs Quick mode through `chrome.downloads` and enforces the selected filename. |
-| `downloader.html` / `downloader.js` | Runs folder mode, opens the native directory picker, fetches image blobs four at a time, and writes them to the selected directory. |
+| `downloader.html` / `downloader.js` | Runs folder mode: shows the images as a grid, opens the native directory picker on the first click and starts saving at once, four at a time. Tiles turn solid as each file is written; failed ones can be retried into the same folder. |
 
 ## Scan pipeline
 
@@ -27,7 +28,7 @@ The popup sends the scan result to `background.js`. The service worker uses `chr
 
 ### Folder mode
 
-The popup stores the scan result in `chrome.storage.session` and opens `downloader.html`. That page calls `showDirectoryPicker({ mode: "readwrite" })` after the user clicks **Choose folder**. It fetches each image and writes its blob to the selected `FileSystemDirectoryHandle`.
+The popup stores the scan result in `chrome.storage.session` and opens `downloader.html`. That page calls `showDirectoryPicker({ mode: "readwrite" })` after the user clicks **Save images to…**, then starts writing right away. It fetches each image and writes its blob to the selected `FileSystemDirectoryHandle`.
 
 Folder mode does not overwrite existing files. A collision becomes `image 1 (1).jpg`, for example.
 

@@ -3,18 +3,26 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Choose download folder</title>
+    <title>Save Behance images</title>
+    <link rel="stylesheet" href="ui.css">
     <link rel="stylesheet" href="downloader.css">
   </head>
   <body>
     <main>
-      <h1>Behance image download</h1>
-      <p id="status">Loading images...</p>
-      <p id="folder" class="folder">No folder selected.</p>
-      <button id="choose-folder" type="button">Choose folder</button>
-      <button id="download" type="button" disabled>Download images</button>
+      <header>
+        <div class="heading">
+          <h1 id="title">Behance images</h1>
+          <p id="status" class="status" role="status">&nbsp;</p>
+        </div>
+        <button id="save" class="primary" type="button">
+          <svg class="check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 8.5 3 3 6-7"/></svg>
+          <span class="label">Save images to…</span>
+        </button>
+      </header>
+      <ol id="grid" class="grid"></ol>
     </main>
     <script src="filenames.js"></script>
+    <script src="ui.js"></script>
     <script src="downloader.js"></script>
   </body>
 </html>

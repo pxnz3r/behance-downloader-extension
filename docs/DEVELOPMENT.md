@@ -17,7 +17,10 @@
 ## Manual test checklist
 
 - Scan shows the intended project image count rather than recommendation assets.
-- Quick mode saves to Downloads.
+- Opening the popup on a project shows its title and image count without a click.
+- Downloads mode saves to Downloads; the button ends on "Started N downloads".
+- Any-folder mode shows the grid, picks a folder and saves in one click, and offers "Retry N failed" when something fails.
+- Light and dark system themes both read correctly; nothing animates on first paint.
 - Folder mode opens the native chooser and saves to the selected folder.
 - Numbered mode starts with `image 1` (zero-padded when there are 10 or more images).
 - Project-folder mode creates a folder named after the project in both modes.

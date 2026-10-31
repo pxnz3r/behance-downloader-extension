@@ -4,18 +4,34 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Behance Downloader</title>
+    <link rel="stylesheet" href="ui.css">
     <link rel="stylesheet" href="popup.css">
   </head>
   <body>
     <main>
-      <h1>Behance images</h1>
-      <p id="status">Open a Behance project, then scan.</p>
-      <label class="toggle"><input id="quick-mode" type="checkbox"> Quick mode: save to Downloads</label>
-      <label class="toggle"><input id="keep-original" type="checkbox"> Keep original image names</label>
-      <label class="toggle"><input id="project-folder" type="checkbox" checked> Save in a project-named folder</label>
-      <button id="scan" type="button">Scan page</button>
-      <button id="continue" type="button" disabled>Choose folder &amp; download</button>
+      <header>
+        <h1 id="title">Behance images</h1>
+        <p id="status" class="status" role="status">&nbsp;</p>
+      </header>
+
+      <fieldset class="segmented">
+        <legend class="visually-hidden">Save to</legend>
+        <label><input type="radio" name="destination" value="downloads" checked><span>Downloads</span></label>
+        <label><input type="radio" name="destination" value="folder"><span>Any folder</span></label>
+        <span class="thumb" aria-hidden="true"></span>
+      </fieldset>
+
+      <div class="switches">
+        <label class="switch">Project folder <input id="project-folder" type="checkbox" role="switch" checked></label>
+        <label class="switch">Original file names <input id="keep-original" type="checkbox" role="switch"></label>
+      </div>
+
+      <button id="save" class="primary" type="button" disabled>
+        <svg class="check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 8.5 3 3 6-7"/></svg>
+        <span class="label">Save images</span>
+      </button>
     </main>
+    <script src="ui.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

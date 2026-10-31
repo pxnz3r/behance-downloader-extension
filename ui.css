@@ -1,0 +1,97 @@
+/* Shared by popup.html and downloader.html. */
+:root {
+  color-scheme: light dark;
+  --bg: #fafafa;
+  --surface: #efefef;
+  --raised: #ffffff;
+  --fg: #141414;
+  --muted: #6e6e6e;
+  --hairline: rgb(0 0 0 / 0.09);
+  --track: #d6d6d6;
+  --knob: #ffffff;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141414;
+    --surface: #222222;
+    --raised: #333333;
+    --fg: #f2f2f2;
+    --muted: #9c9c9c;
+    --hairline: rgb(255 255 255 / 0.09);
+    --track: #3d3d3d;
+    --knob: #a8a8a8;
+  }
+}
+
+body { margin: 0; background: var(--bg); color: var(--fg); }
+h1 { margin: 0; font-weight: 600; text-wrap: balance; }
+p { margin: 0; }
+
+.status { color: var(--muted); font-size: 13px; line-height: 1.4; font-variant-numeric: tabular-nums; text-wrap: pretty; }
+
+.primary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 12px;
+  background: var(--fg);
+  color: var(--bg);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.primary:disabled { opacity: 0.4; cursor: default; }
+.primary[aria-disabled="true"] { cursor: default; }
+.primary[data-tone="quiet"] { background: var(--surface); color: var(--fg); }
+.primary:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+
+/* Progress: a soft fill sweeping inside the button, up to its rim. */
+.primary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in oklab, var(--bg) 24%, transparent);
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left;
+  pointer-events: none;
+}
+.primary .label, .primary .check { position: relative; }
+.primary .check { display: none; width: 16px; height: 16px; }
+.primary[data-state="done"] .check { display: block; }
+
+.char { display: inline-block; white-space: pre; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .primary { transition: scale 160ms var(--ease-out); }
+  .primary:active:not(:disabled, [aria-disabled="true"]) { scale: 0.97; }
+  .primary::before { transition: transform 240ms ease-out; }
+  .primary[data-state="done"] .check { animation: soft-in 200ms var(--ease-out) both; }
+  .char { animation: soft-in 180ms var(--ease-out) both; }
+}
+
+@keyframes soft-in {
+  from { opacity: 0; filter: blur(4px); transform: translateY(3px) scale(0.9); }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

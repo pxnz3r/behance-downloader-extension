@@ -1,19 +1,19 @@
-const chooseFolderButton = document.querySelector("#choose-folder");
-const downloadButton = document.querySelector("#download");
+const title = document.querySelector("#title");
 const status = document.querySelector("#status");
-const folderName = document.querySelector("#folder");
+const saveButton = document.querySelector("#save");
+const grid = document.querySelector("#grid");
 const parallelDownloads = 4;
+const failedIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.2v.3"/></svg>';
 let images = [];
-let title = "";
-let destination;
+let projectTitle = "";
 let keepOriginalNames = false;
 let projectFolder = true;
+let directory;
+let directoryPath = "";
+let busy = false;
+let tiles = [];
 
-function setStatus(message) {
-  status.textContent = message;
-}
-
-async function unusedFilename(directory, filename) {
+async function unusedFilename(filename) {
   let suffix = 0;
   while (true) {
     const dot = filename.lastIndexOf(".");
@@ -30,11 +30,12 @@ async function unusedFilename(directory, filename) {
   }
 }
 
-async function writeImage(directory, url, index) {
+async function writeImage(index) {
+  const { url } = images[index];
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Image ${index + 1} failed (${response.status}).`);
 
-  const filename = await unusedFilename(directory, imageFilename(url, index, images.length, keepOriginalNames));
+  const filename = await unusedFilename(imageFilename(url, index, images.length, keepOriginalNames));
   const file = await directory.getFileHandle(filename, { create: true });
   const writable = await file.createWritable();
   try {
@@ -44,64 +45,103 @@ async function writeImage(directory, url, index) {
   }
 }
 
-chooseFolderButton.addEventListener("click", async () => {
-  if (!window.showDirectoryPicker) {
-    setStatus("Your Chrome version does not support the folder picker.");
+function indicesIn(state) {
+  return tiles.flatMap((tile, index) => tile.dataset.state === state ? [index] : []);
+}
+
+async function chooseDirectory() {
+  if (!window.showDirectoryPicker) throw new Error("This version of Chrome has no folder picker.");
+  const destination = await window.showDirectoryPicker({ mode: "readwrite" });
+  if (projectFolder) {
+    const folder = projectFolderName(projectTitle);
+    directory = await destination.getDirectoryHandle(folder, { create: true });
+    directoryPath = `${destination.name}/${folder}`;
+  } else {
+    directory = destination;
+    directoryPath = destination.name;
+  }
+}
+
+async function save(indices) {
+  busy = true;
+  saveButton.setAttribute("aria-disabled", "true");
+  saveButton.dataset.state = "saving";
+  delete saveButton.dataset.tone;
+  for (const index of indices) tiles[index].dataset.state = "pending";
+
+  let done = 0;
+  let next = 0;
+  const progress = () => {
+    saveButton.style.setProperty("--progress", done / indices.length);
+    setLabel(saveButton, `Saving ${done} of ${indices.length}`);
+  };
+  progress();
+
+  const worker = async () => {
+    while (next < indices.length) {
+      const index = indices[next];
+      next += 1;
+      try {
+        await writeImage(index);
+        tiles[index].dataset.state = "saved";
+      } catch (error) {
+        tiles[index].dataset.state = "failed";
+      }
+      done += 1;
+      progress();
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(parallelDownloads, indices.length) }, worker));
+
+  busy = false;
+  saveButton.removeAttribute("aria-disabled");
+  saveButton.style.removeProperty("--progress");
+  const failed = indicesIn("failed");
+  const saved = indicesIn("saved").length;
+  if (failed.length) {
+    status.textContent = `Saved ${saved} of ${images.length} to ${directoryPath}. ${failed.length} failed.`;
+    saveButton.dataset.state = "retry";
+    setLabel(saveButton, `Retry ${failed.length} failed`);
+  } else {
+    status.textContent = `Saved ${plural(saved, "image")} to ${directoryPath}.`;
+    saveButton.dataset.state = "finished";
+    saveButton.dataset.tone = "quiet";
+    setLabel(saveButton, "Save to another folder");
+  }
+}
+
+saveButton.addEventListener("click", async () => {
+  if (busy || !images.length) return;
+
+  if (saveButton.dataset.state === "retry") {
+    await save(indicesIn("failed"));
     return;
   }
 
   try {
-    destination = await window.showDirectoryPicker({ mode: "readwrite" });
-    folderName.textContent = projectFolder
-      ? `Selected: ${destination.name}/${projectFolderName(title)}`
-      : `Selected: ${destination.name}`;
-    downloadButton.disabled = images.length === 0;
+    await chooseDirectory();
   } catch (error) {
-    if (error.name !== "AbortError") setStatus(error.message || "Could not select the folder.");
+    if (error.name !== "AbortError") status.textContent = error.message || "Could not open that folder.";
+    return;
   }
+  await save(images.map((_image, index) => index));
 });
 
-downloadButton.addEventListener("click", async () => {
-  if (!destination || !images.length) return;
-
-  chooseFolderButton.disabled = true;
-  downloadButton.disabled = true;
-  const failed = [];
-  let saved = 0;
-  let next = 0;
-
-  try {
-    const directory = projectFolder
-      ? await destination.getDirectoryHandle(projectFolderName(title), { create: true })
-      : destination;
-
-    setStatus(`Saving 0 of ${images.length}...`);
-    const worker = async () => {
-      while (next < images.length) {
-        const index = next;
-        next += 1;
-        try {
-          await writeImage(directory, images[index].url, index);
-          saved += 1;
-          setStatus(`Saving ${saved} of ${images.length}...`);
-        } catch (error) {
-          failed.push(index + 1);
-        }
-      }
-    };
-    await Promise.all(Array.from({ length: Math.min(parallelDownloads, images.length) }, worker));
-
-    failed.sort((left, right) => left - right);
-    setStatus(failed.length
-      ? `Saved ${saved}; failed: image ${failed.join(", ")}.`
-      : `Saved ${saved} images.`);
-  } catch (error) {
-    setStatus(error.message || "Could not write to the selected folder.");
-  } finally {
-    chooseFolderButton.disabled = false;
-    downloadButton.disabled = false;
-  }
-});
+function renderTiles() {
+  tiles = images.map(({ url }, index) => {
+    const tile = document.createElement("li");
+    tile.className = "tile";
+    const image = document.createElement("img");
+    image.src = url;
+    image.alt = `Image ${index + 1}`;
+    image.loading = "lazy";
+    image.decoding = "async";
+    tile.append(image);
+    tile.insertAdjacentHTML("beforeend", `<span class="failed">${failedIcon}<span class="visually-hidden">Failed</span></span>`);
+    return tile;
+  });
+  grid.replaceChildren(...tiles);
+}
 
 void chrome.storage.session.get(["scannedBehanceImages", "scannedBehanceTitle", "keepOriginalNames", "projectFolder"]).then(({
   scannedBehanceImages = [],
@@ -110,9 +150,22 @@ void chrome.storage.session.get(["scannedBehanceImages", "scannedBehanceTitle", 
   projectFolder: storedProjectFolder = true
 }) => {
   images = scannedBehanceImages;
-  title = scannedBehanceTitle;
+  projectTitle = scannedBehanceTitle;
   keepOriginalNames = storedKeepOriginalNames;
   projectFolder = storedProjectFolder;
-  downloadButton.textContent = `Download ${images.length} image${images.length === 1 ? "" : "s"}`;
-  setStatus(images.length ? `Ready: ${images.length} project image${images.length === 1 ? "" : "s"}. Choose any folder.` : "No scanned images found. Return to Behance and scan first.");
+
+  if (!images.length) {
+    status.textContent = "Nothing to save. Scan a Behance project from the extension first.";
+    saveButton.hidden = true;
+    return;
+  }
+
+  title.textContent = projectTitle || "Behance project";
+  document.title = `Save ${title.textContent}`;
+  status.textContent = projectFolder
+    ? `${plural(images.length, "image")}, saved into a “${projectFolderName(projectTitle)}” folder`
+    : plural(images.length, "image");
+  saveButton.querySelector(".label").textContent = "";
+  setLabel(saveButton, `Save ${plural(images.length, "image")} to…`);
+  renderTiles();
 });
