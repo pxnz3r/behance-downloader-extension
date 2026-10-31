@@ -136,6 +136,7 @@ function renderTiles() {
     image.alt = `Image ${index + 1}`;
     image.loading = "lazy";
     image.decoding = "async";
+    image.addEventListener("load", () => tile.classList.add("loaded"), { once: true });
     tile.append(image);
     tile.insertAdjacentHTML("beforeend", `<span class="failed">${failedIcon}<span class="visually-hidden">Failed</span></span>`);
     return tile;
@@ -163,8 +164,8 @@ void chrome.storage.session.get(["scannedBehanceImages", "scannedBehanceTitle", 
   title.textContent = projectTitle || "Behance project";
   document.title = `Save ${title.textContent}`;
   status.textContent = projectFolder
-    ? `${plural(images.length, "image")}, saved into a “${projectFolderName(projectTitle)}” folder`
-    : plural(images.length, "image");
+    ? `${plural(images.length, "image")}, not saved yet. They go into a new “${projectFolderName(projectTitle)}” folder inside the folder you pick.`
+    : `${plural(images.length, "image")}, not saved yet. They go straight into the folder you pick.`;
   saveButton.querySelector(".label").textContent = "";
   setLabel(saveButton, `Save ${plural(images.length, "image")} to…`);
   renderTiles();
