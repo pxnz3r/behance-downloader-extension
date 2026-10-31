@@ -19,6 +19,8 @@
 - Scan shows the intended project image count rather than recommendation assets.
 - Quick mode saves to Downloads.
 - Folder mode opens the native chooser and saves to the selected folder.
-- Numbered mode starts with `image 1`.
+- Numbered mode starts with `image 1` (zero-padded when there are 10 or more images).
+- Project-folder mode creates a folder named after the project in both modes.
+- Popup toggles keep their state after closing and reopening the popup.
 - Original-name mode retains the CDN filename.
 - Existing destination files are not overwritten in folder mode.

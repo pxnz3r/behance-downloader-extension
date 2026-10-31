@@ -5,10 +5,11 @@
 | File | Responsibility |
 | --- | --- |
 | `manifest.json` | Declares the Manifest V3 extension, permissions, popup, and service worker. |
-| `popup.html` / `popup.js` | Provides scan controls and the Quick mode / naming toggles. |
-| `scanner.js` | Runs in the active Behance page and returns ordered, deduplicated project image URLs. |
+| `popup.html` / `popup.js` | Provides scan controls and the Quick mode, naming, and project-folder toggles. Remembers them in `chrome.storage.local`. |
+| `scanner.js` | Runs in the active Behance page and returns the project title plus ordered, deduplicated project image URLs. |
+| `filenames.js` | Shared filename helpers: numbered and original names, and the sanitized project folder name. Loaded by `background.js` (`importScripts`) and `downloader.html`. |
 | `background.js` | Runs Quick mode through `chrome.downloads` and enforces the selected filename. |
-| `downloader.html` / `downloader.js` | Runs folder mode, opens the native directory picker, fetches image blobs, and writes them to the selected directory. |
+| `downloader.html` / `downloader.js` | Runs folder mode, opens the native directory picker, fetches image blobs four at a time, and writes them to the selected directory. |
 
 ## Scan pipeline
 
@@ -32,6 +33,8 @@ Folder mode does not overwrite existing files. A collision becomes `image 1 (1).
 
 ## Naming
 
+With the project-folder toggle on (the default), both modes save into a subfolder named after the project title (`og:title`, sanitized for Windows). Quick mode puts it under Downloads; folder mode creates it inside the chosen folder. Numbered names are zero-padded to the image count, so `image 01.jpg` sorts before `image 10.jpg`.
+
 With the original-name toggle off, names are `image 1.ext`, `image 2.ext`, and so on. With it on, the extension uses the final filename segment from the Behance CDN URL. Both modes preserve the image order returned by the scanner.
 
 ## Validation
@@ -42,6 +45,7 @@ Run syntax checks after JavaScript changes:
 node --check popup.js
 node --check scanner.js
 node --check downloader.js
+node --check filenames.js
 node --check background.js
 ```
 
