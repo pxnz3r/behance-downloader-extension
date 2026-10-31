@@ -1,14 +1,6 @@
+importScripts("filenames.js");
+
 const plannedNamesKey = "quickBehanceDownloadNames";
-
-function originalFilename(url) {
-  return decodeURIComponent(new URL(url).pathname.split("/").at(-1))
-    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "_");
-}
-
-function numberedFilename(url, index) {
-  const extension = url.match(/\.(jpe?g|png|webp)(?:\?|$)/i)[1].toLowerCase();
-  return `image ${index + 1}.${extension}`;
-}
 
 chrome.downloads.onDeterminingFilename.addListener((item, suggest) => {
   let suggested = false;
@@ -31,13 +23,17 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type !== "quickDownload") return;
 
   void (async () => {
-    const names = Object.fromEntries(message.images.map(({ url }, index) => [
+    const { images, keepOriginalNames, projectFolder } = message;
+    const folder = projectFolder ? `${projectFolderName(message.title)}/` : "";
+    const names = Object.fromEntries(images.map(({ url }, index) => [
       url,
-      message.keepOriginalNames ? originalFilename(url) : numberedFilename(url, index)
+      folder + imageFilename(url, index, images.length, keepOriginalNames)
     ]));
-    await chrome.storage.session.set({ [plannedNamesKey]: names });
+    // Merge so an earlier batch that is still starting keeps its names.
+    const { [plannedNamesKey]: planned = {} } = await chrome.storage.session.get(plannedNamesKey);
+    await chrome.storage.session.set({ [plannedNamesKey]: { ...planned, ...names } });
 
-    const results = await Promise.allSettled(message.images.map(({ url }) =>
+    const results = await Promise.allSettled(images.map(({ url }) =>
       chrome.downloads.download({ url, filename: names[url], conflictAction: "uniquify", saveAs: false })
     ));
     sendResponse({ failed: results.filter((result) => result.status === "rejected").length });

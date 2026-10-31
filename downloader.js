@@ -2,24 +2,18 @@ const chooseFolderButton = document.querySelector("#choose-folder");
 const downloadButton = document.querySelector("#download");
 const status = document.querySelector("#status");
 const folderName = document.querySelector("#folder");
+const parallelDownloads = 4;
 let images = [];
+let title = "";
 let destination;
 let keepOriginalNames = false;
+let projectFolder = true;
 
 function setStatus(message) {
   status.textContent = message;
 }
 
-function extensionFor(url) {
-  return url.match(/\.(jpe?g|png|webp)(?:\?|$)/i)[1].toLowerCase();
-}
-
-function originalFilename(url) {
-  return decodeURIComponent(new URL(url).pathname.split("/").at(-1))
-    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "_");
-}
-
-async function unusedFilename(filename) {
+async function unusedFilename(directory, filename) {
   let suffix = 0;
   while (true) {
     const dot = filename.lastIndexOf(".");
@@ -27,7 +21,7 @@ async function unusedFilename(filename) {
     const extension = dot > 0 ? filename.slice(dot) : "";
     const candidate = suffix ? `${base} (${suffix})${extension}` : filename;
     try {
-      await destination.getFileHandle(candidate);
+      await directory.getFileHandle(candidate);
       suffix += 1;
     } catch (error) {
       if (error.name === "NotFoundError") return candidate;
@@ -36,13 +30,12 @@ async function unusedFilename(filename) {
   }
 }
 
-async function writeImage(url, index) {
+async function writeImage(directory, url, index) {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Image ${index + 1} failed (${response.status}).`);
 
-  const requestedName = keepOriginalNames ? originalFilename(url) : `image ${index + 1}.${extensionFor(url)}`;
-  const filename = await unusedFilename(requestedName);
-  const file = await destination.getFileHandle(filename, { create: true });
+  const filename = await unusedFilename(directory, imageFilename(url, index, images.length, keepOriginalNames));
+  const file = await directory.getFileHandle(filename, { create: true });
   const writable = await file.createWritable();
   try {
     await writable.write(await response.blob());
@@ -59,7 +52,9 @@ chooseFolderButton.addEventListener("click", async () => {
 
   try {
     destination = await window.showDirectoryPicker({ mode: "readwrite" });
-    folderName.textContent = `Selected: ${destination.name}`;
+    folderName.textContent = projectFolder
+      ? `Selected: ${destination.name}/${projectFolderName(title)}`
+      : `Selected: ${destination.name}`;
     downloadButton.disabled = images.length === 0;
   } catch (error) {
     if (error.name !== "AbortError") setStatus(error.message || "Could not select the folder.");
@@ -71,28 +66,53 @@ downloadButton.addEventListener("click", async () => {
 
   chooseFolderButton.disabled = true;
   downloadButton.disabled = true;
-  let failed = 0;
+  const failed = [];
+  let saved = 0;
+  let next = 0;
 
-  for (let index = 0; index < images.length; index += 1) {
-    setStatus(`Saving image ${index + 1} of ${images.length}...`);
-    try {
-      await writeImage(images[index].url, index);
-    } catch (error) {
-      failed += 1;
-    }
+  try {
+    const directory = projectFolder
+      ? await destination.getDirectoryHandle(projectFolderName(title), { create: true })
+      : destination;
+
+    setStatus(`Saving 0 of ${images.length}...`);
+    const worker = async () => {
+      while (next < images.length) {
+        const index = next;
+        next += 1;
+        try {
+          await writeImage(directory, images[index].url, index);
+          saved += 1;
+          setStatus(`Saving ${saved} of ${images.length}...`);
+        } catch (error) {
+          failed.push(index + 1);
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(parallelDownloads, images.length) }, worker));
+
+    failed.sort((left, right) => left - right);
+    setStatus(failed.length
+      ? `Saved ${saved}; failed: image ${failed.join(", ")}.`
+      : `Saved ${saved} images.`);
+  } catch (error) {
+    setStatus(error.message || "Could not write to the selected folder.");
+  } finally {
+    chooseFolderButton.disabled = false;
+    downloadButton.disabled = false;
   }
-
-  setStatus(failed ? `Saved ${images.length - failed}; ${failed} failed.` : `Saved ${images.length} images.`);
-  chooseFolderButton.disabled = false;
-  downloadButton.disabled = false;
 });
 
-void chrome.storage.session.get(["scannedBehanceImages", "keepOriginalNames"]).then(({
+void chrome.storage.session.get(["scannedBehanceImages", "scannedBehanceTitle", "keepOriginalNames", "projectFolder"]).then(({
   scannedBehanceImages = [],
-  keepOriginalNames: storedKeepOriginalNames = false
+  scannedBehanceTitle = "",
+  keepOriginalNames: storedKeepOriginalNames = false,
+  projectFolder: storedProjectFolder = true
 }) => {
   images = scannedBehanceImages;
+  title = scannedBehanceTitle;
   keepOriginalNames = storedKeepOriginalNames;
+  projectFolder = storedProjectFolder;
   downloadButton.textContent = `Download ${images.length} image${images.length === 1 ? "" : "s"}`;
   setStatus(images.length ? `Ready: ${images.length} project image${images.length === 1 ? "" : "s"}. Choose any folder.` : "No scanned images found. Return to Behance and scan first.");
 });

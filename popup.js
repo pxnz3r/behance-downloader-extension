@@ -2,8 +2,11 @@ const scanButton = document.querySelector("#scan");
 const continueButton = document.querySelector("#continue");
 const quickMode = document.querySelector("#quick-mode");
 const keepOriginal = document.querySelector("#keep-original");
+const projectFolder = document.querySelector("#project-folder");
 const status = document.querySelector("#status");
+const optionsKey = "popupOptions";
 let images = [];
+let title = "";
 
 function setStatus(message) {
   status.textContent = message;
@@ -22,7 +25,24 @@ function updateDownloadButton() {
     : `Choose folder & download ${images.length} image${images.length === 1 ? "" : "s"}`;
 }
 
+function saveOptions() {
+  void chrome.storage.local.set({ [optionsKey]: {
+    quickMode: quickMode.checked,
+    keepOriginal: keepOriginal.checked,
+    projectFolder: projectFolder.checked
+  } });
+}
+
+for (const toggle of [quickMode, keepOriginal, projectFolder]) toggle.addEventListener("change", saveOptions);
 quickMode.addEventListener("change", updateDownloadButton);
+
+void chrome.storage.local.get(optionsKey).then(({ [optionsKey]: options }) => {
+  if (!options) return;
+  quickMode.checked = options.quickMode;
+  keepOriginal.checked = options.keepOriginal;
+  projectFolder.checked = options.projectFolder;
+  updateDownloadButton();
+});
 
 async function activeTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -45,11 +65,12 @@ scanButton.addEventListener("click", async () => {
       target: { tabId: tab.id },
       func: () => globalThis.collectBehanceProjectImages()
     });
-    images = result || [];
+    ({ title, images } = result);
     updateDownloadButton();
     setStatus(images.length ? `Found ${images.length} project image${images.length === 1 ? "" : "s"}.` : "No project images found.");
   } catch (error) {
     images = [];
+    title = "";
     updateDownloadButton();
     setStatus(error.message || "Could not scan this page.");
   }
@@ -63,8 +84,10 @@ continueButton.addEventListener("click", async () => {
     try {
       const response = await chrome.runtime.sendMessage({
         type: "quickDownload",
+        title,
         images,
-        keepOriginalNames: keepOriginal.checked
+        keepOriginalNames: keepOriginal.checked,
+        projectFolder: projectFolder.checked
       });
       if (response?.error) throw new Error(response.error);
       setStatus(response?.failed ? `Started ${images.length - response.failed}; ${response.failed} failed.` : `Started ${images.length} downloads.`);
@@ -78,7 +101,9 @@ continueButton.addEventListener("click", async () => {
 
   await chrome.storage.session.set({
     scannedBehanceImages: images,
-    keepOriginalNames: keepOriginal.checked
+    scannedBehanceTitle: title,
+    keepOriginalNames: keepOriginal.checked,
+    projectFolder: projectFolder.checked
   });
   await chrome.tabs.create({ url: chrome.runtime.getURL("downloader.html") });
   window.close();

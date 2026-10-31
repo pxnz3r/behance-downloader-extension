@@ -69,7 +69,10 @@ globalThis.collectBehanceProjectImages = function collectBehanceProjectImages() 
     }
   }
 
-  return [...bestByAsset.entries()]
+  const images = [...bestByAsset.entries()]
     .sort(([, left], [, right]) => left.order - right.order)
     .map(([assetId, image]) => ({ assetId, url: image.url }));
+  const title = document.querySelector('meta[property="og:title"]')?.content
+    || document.title.replace(/\s*::\s*Behance\s*$/i, "");
+  return { title, images };
 };
