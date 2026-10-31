@@ -4,12 +4,22 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Behance Downloader</title>
+    <link rel="icon" href="icons/icon.svg">
     <link rel="stylesheet" href="ui.css">
     <link rel="stylesheet" href="popup.css">
   </head>
   <body>
     <main>
       <header>
+        <svg class="logo" viewBox="0 0 128 128" aria-hidden="true">
+          <rect width="128" height="128" rx="30" class="logo-tile"/>
+          <g class="logo-mark">
+            <rect x="30" y="30" width="30" height="30" rx="8"/>
+            <rect x="68" y="30" width="30" height="30" rx="8"/>
+            <rect x="30" y="68" width="30" height="30" rx="8"/>
+            <path d="M83 69v26M72 85l11 11 11-11" fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          </g>
+        </svg>
         <h1 id="title">Behance images</h1>
         <p id="status" class="status" role="status">&nbsp;</p>
       </header>

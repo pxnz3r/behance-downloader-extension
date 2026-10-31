@@ -1,7 +1,11 @@
 body { width: 280px; }
 main { display: grid; gap: 16px; padding: 16px; }
 
-header { display: grid; gap: 4px; }
+header { display: grid; justify-items: center; gap: 4px; text-align: center; }
+.logo { width: 32px; height: 32px; margin-bottom: 6px; }
+.logo-tile { fill: var(--fg); }
+.logo-mark { fill: var(--bg); stroke: var(--bg); }
+.logo-mark rect { stroke: none; }
 h1 {
   display: -webkit-box;
   overflow: hidden;
