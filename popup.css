@@ -1,11 +1,11 @@
-body { width: 280px; }
-main { display: grid; gap: 16px; padding: 16px; }
-
-header { display: grid; justify-items: center; gap: 4px; text-align: center; }
-.logo { width: 32px; height: 32px; margin-bottom: 6px; }
-.logo-tile { fill: var(--fg); }
-.logo-mark { fill: var(--bg); stroke: var(--bg); }
-.logo-mark rect { stroke: none; }
+body { width: 264px; }
+main {
+  display: grid;
+  justify-items: center;
+  padding: 20px 16px 16px;
+  text-align: center;
+}
+.logo { width: 32px; height: 32px; margin-bottom: 12px; }
 h1 {
   display: -webkit-box;
   overflow: hidden;
@@ -14,85 +14,5 @@ h1 {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
-
-/* Two-way choice: a raised thumb slides under the picked side. */
-.segmented {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  margin: 0;
-  padding: 4px;
-  border: 0;
-  border-radius: 12px;
-  background: var(--surface);
-}
-.segmented label { position: relative; z-index: 1; cursor: pointer; }
-.segmented input { position: absolute; opacity: 0; pointer-events: none; }
-.segmented span:not(.thumb) {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 32px;
-  border-radius: 8px;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 500;
-}
-.segmented input:checked + span { color: var(--fg); }
-.segmented input:focus-visible + span { outline: 2px solid var(--fg); outline-offset: -2px; }
-.thumb {
-  position: absolute;
-  top: 4px;
-  bottom: 4px;
-  left: 4px;
-  width: calc(50% - 4px);
-  border-radius: 8px;
-  background: var(--raised);
-  box-shadow: 0 0 0 1px var(--hairline), 0 1px 2px rgb(0 0 0 / 0.06);
-}
-.segmented:has(input[value="folder"]:checked) .thumb { translate: 100% 0; }
-
-.switches { display: grid; margin-top: -4px; }
-.path { margin-top: 4px; font-size: 12px; overflow-wrap: anywhere; }
-.path b { color: var(--fg); font-weight: 500; }
-.switch {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 36px;
-  font-size: 13px;
-  cursor: pointer;
-}
-.switch input {
-  position: relative;
-  width: 32px;
-  height: 20px;
-  margin: 0;
-  border-radius: 999px;
-  background: var(--track);
-  cursor: pointer;
-  appearance: none;
-}
-.switch input::before {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--knob);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
-}
-.switch input:checked { background: var(--fg); }
-.switch input:checked::before { background: var(--bg); translate: 12px 0; }
-.switch input:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
-
-.primary { width: 100%; }
-
-/* "ready" is set after stored options load, so the first paint never slides. */
-@media (prefers-reduced-motion: no-preference) {
-  .ready .thumb { transition: translate 220ms var(--ease-out); }
-  .ready .segmented span:not(.thumb) { transition: color 150ms ease-out; }
-  .ready .switch input, .ready .switch input::before { transition: background-color 150ms ease-out, translate 180ms var(--ease-out); }
-}
+.status { margin-top: 2px; }
+.primary { width: 100%; margin-top: 16px; }

@@ -10,39 +10,21 @@
   </head>
   <body>
     <main>
-      <header>
-        <svg class="logo" viewBox="0 0 128 128" aria-hidden="true">
-          <rect width="128" height="128" rx="30" class="logo-tile"/>
-          <g class="logo-mark">
-            <rect x="30" y="30" width="30" height="30" rx="8"/>
-            <rect x="68" y="30" width="30" height="30" rx="8"/>
-            <rect x="30" y="68" width="30" height="30" rx="8"/>
-            <path d="M83 69v26M72 85l11 11 11-11" fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-          </g>
-        </svg>
-        <h1 id="title">Behance images</h1>
-        <p id="status" class="status" role="status">&nbsp;</p>
-      </header>
-
-      <fieldset class="segmented">
-        <legend class="visually-hidden">Save to</legend>
-        <label><input type="radio" name="destination" value="downloads" checked><span>Downloads</span></label>
-        <label><input type="radio" name="destination" value="folder"><span>Any folder</span></label>
-        <span class="thumb" aria-hidden="true"></span>
-      </fieldset>
-
-      <div class="switches">
-        <label class="switch">Save in a project folder <input id="project-folder" type="checkbox" role="switch" checked></label>
-        <label class="switch">Keep original file names <input id="keep-original" type="checkbox" role="switch"></label>
-        <p id="path" class="status path"></p>
-      </div>
-
-      <button id="save" class="primary" type="button" disabled>
-        <svg class="check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 8.5 3 3 6-7"/></svg>
-        <span class="label">Save images</span>
+      <svg class="logo" viewBox="0 0 128 128" aria-hidden="true">
+        <rect width="128" height="128" rx="30" class="logo-tile"/>
+        <g class="logo-mark">
+          <rect x="30" y="30" width="30" height="30" rx="8"/>
+          <rect x="68" y="30" width="30" height="30" rx="8"/>
+          <rect x="30" y="68" width="30" height="30" rx="8"/>
+          <path d="M83 69v26M72 85l11 11 11-11" fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+      </svg>
+      <h1 id="title">Behance images</h1>
+      <p id="status" class="status" role="status">&nbsp;</p>
+      <button id="open" class="primary" type="button" disabled>
+        <span class="label">Choose images</span>
       </button>
     </main>
-    <script src="filenames.js"></script>
     <script src="ui.js"></script>
     <script src="popup.js"></script>
   </body>

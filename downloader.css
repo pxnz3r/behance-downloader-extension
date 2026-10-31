@@ -1,34 +1,149 @@
-main { padding: 0 32px 48px; }
-
-header {
+.bar {
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 2;
+  padding: 28px 32px 0;
+  background: var(--bg);
+  box-shadow: 0 1px 0 var(--hairline);
+}
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+}
+.heading { min-width: 0; }
+h1 { font-size: 22px; line-height: 1.2; }
+.status { margin-top: 4px; }
+.status b { color: var(--fg); font-weight: 500; }
+.actions { display: flex; align-items: center; gap: 8px; }
+.primary { min-width: 168px; }
+
+/* Two-way choice: a raised thumb slides under the picked side. */
+.segmented {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0;
+  padding: 3px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--surface);
+}
+.segmented label { position: relative; z-index: 1; cursor: pointer; }
+.segmented input { position: absolute; opacity: 0; pointer-events: none; }
+.segmented span:not(.thumb) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 7px;
+  color: var(--muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.segmented input:checked + span { color: var(--fg); }
+.segmented input:focus-visible + span { outline: 2px solid var(--fg); outline-offset: -2px; }
+.thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  border-radius: 7px;
+  background: var(--raised);
+  box-shadow: 0 0 0 1px var(--hairline), 0 1px 2px rgb(0 0 0 / 0.06);
+}
+.segmented:has(input[value="folder"]:checked) .thumb { translate: 100% 0; }
+
+.toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px 24px;
-  padding: 32px 0 20px;
-  background: var(--bg);
+  gap: 8px 24px;
+  padding: 14px 0 12px;
 }
-.heading { display: grid; gap: 4px; min-width: 0; }
-h1 { font-size: 22px; line-height: 1.25; }
-.primary { min-width: 200px; }
+.select-all, .switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.count { color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
+.options { display: flex; flex-wrap: wrap; gap: 4px 20px; }
 
+.select-all input {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1.5px var(--track);
+  cursor: pointer;
+  appearance: none;
+}
+.select-all input:checked, .select-all input:indeterminate { background: var(--fg); box-shadow: none; }
+.select-all input::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  mask: no-repeat center / 12px 12px;
+}
+.select-all input:checked::after { mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='m2.5 6.3 2.3 2.2 4.7-5' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.select-all input:indeterminate::after { mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 6h6' stroke='black' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E"); }
+
+.switch input {
+  position: relative;
+  width: 28px;
+  height: 16px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--track);
+  cursor: pointer;
+  appearance: none;
+}
+.switch input::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--knob);
+}
+.switch input:checked { background: var(--fg); }
+.switch input:checked::before { background: var(--bg); translate: 12px 0; }
+.select-all input:focus-visible, .switch input:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+
+main { padding: 16px 32px 48px; }
 .grid { display: flex; align-items: flex-start; gap: 12px; }
 .column { display: flex; flex: 1; flex-direction: column; gap: 12px; min-width: 0; }
+
+/* A tile is a toggle button. Its aspect ratio comes from the scan, so it has
+   its final size before the preview arrives and nothing shifts on load. */
 .tile {
   position: relative;
-  margin: 0;
+  display: block;
+  width: 100%;
+  padding: 0;
   overflow: hidden;
+  border: 0;
   border-radius: 12px;
   background: var(--surface);
+  cursor: pointer;
 }
-/* Until an image loads its height is unknown; hold a 4:5 slot. */
-.tile:not(.loaded) { aspect-ratio: 4 / 5; }
-.tile img { display: block; width: 100%; height: auto; opacity: 0; }
+.tile img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
 .tile.loaded img { opacity: 1; }
+.tile[aria-pressed="false"] img { opacity: 0.35; }
+.tile:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+
 /* Keeps light image edges from bleeding into the page. */
 .tile::after {
   content: "";
@@ -40,19 +155,49 @@ h1 { font-size: 22px; line-height: 1.25; }
   pointer-events: none;
 }
 
-/* While saving, waiting tiles dim and each one turns solid once it is on disk. */
-.tile[data-state="pending"] img,
-.tile[data-state="failed"] img { opacity: 0.3; }
-.tile .failed {
+/* Loading: a soft band sweeps across the empty tile. */
+.tile::before {
+  content: "";
   position: absolute;
   inset: 0;
-  display: none;
-  place-items: center;
-  color: var(--fg);
+  background: linear-gradient(100deg, transparent 20%, var(--shimmer) 50%, transparent 80%);
+  translate: -100% 0;
+  pointer-events: none;
 }
-.tile[data-state="failed"] .failed { display: grid; }
-.tile .failed svg { width: 28px; height: 28px; }
+.tile.loaded::before { display: none; }
+
+/* The badge sits on imagery, so it uses fixed light-on-dark colours. */
+.tick {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.25);
+  box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.9), 0 1px 3px rgb(0 0 0 / 0.25);
+  color: #141414;
+}
+.tick svg { width: 12px; height: 12px; opacity: 0; }
+.tile[aria-pressed="true"] .tick { background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / 0.3); }
+.tile[aria-pressed="true"] .tick svg { opacity: 1; }
+.tile[data-state="failed"] .tick { background: #141414; color: #fff; box-shadow: inset 0 0 0 1.5px #fff; }
+.tile[data-state="failed"] .tick .ok { display: none; }
+.tile .tick .alert { display: none; }
+.tile[data-state="failed"] .tick .alert { display: block; opacity: 1; }
 
 @media (prefers-reduced-motion: no-preference) {
-  .tile img { transition: opacity 200ms ease-out; }
+  .ready .thumb { transition: translate 220ms var(--ease-out); }
+  .ready .segmented span:not(.thumb) { transition: color 150ms ease-out; }
+  .ready .switch input, .ready .switch input::before { transition: background-color 150ms ease-out, translate 180ms var(--ease-out); }
+  .tile img { transition: opacity 180ms ease-out; }
+  .tick, .tick svg { transition: background-color 120ms ease-out, opacity 120ms ease-out; }
+  .tile:active { scale: 0.985; transition: scale 160ms var(--ease-out); }
+  .tile::before { animation: shimmer 1.4s ease-in-out infinite; }
+}
+
+@keyframes shimmer {
+  to { translate: 100% 0; }
 }

@@ -4,39 +4,35 @@
 
 | File | Responsibility |
 | --- | --- |
-| `manifest.json` | Declares the Manifest V3 extension, permissions, popup, and service worker. |
-| `popup.html` / `popup.js` | Scans the active tab when opened. Holds the destination choice (Downloads or any folder, stored as `quickMode`), naming, and project-folder switches, remembered in `chrome.storage.local`. One primary button carries the flow: save, scan again, or downloads started. |
-| `ui.css` / `ui.js` | Shared monochrome tokens (light and dark), the primary button with its progress fill, and `setLabel()`, which blurs in only the characters that change in a button label. |
-| `scanner.js` | Runs in the active Behance page and returns the project title plus ordered, deduplicated project image URLs. |
-| `filenames.js` | Shared filename helpers: numbered and original names, and the sanitized project folder name. Loaded by `background.js` (`importScripts`) and `downloader.html`. |
-| `background.js` | Runs Quick mode through `chrome.downloads` and enforces the selected filename. |
-| `downloader.html` / `downloader.js` | Runs folder mode: shows the images as a grid, opens the native directory picker on the first click and starts saving at once, four at a time. Tiles turn solid as each file is written; failed ones can be retried into the same folder. |
+| `manifest.json` | Declares the Manifest V3 extension, permissions, icons, popup, and service worker. |
+| `popup.html` / `popup.js` | Launcher. Scans the active tab when opened, shows the project title and image count, and opens the picker page. Offers **Scan again** when nothing loaded. |
+| `scanner.js` | Injected into the Behance tab; its last expression is the result. Returns the project title and, per image, the largest URL, a small preview URL, and the aspect ratio. |
+| `downloader.html` / `downloader.js` | The picker page: masonry grid of previews, selection (click, shift-click range, select all, Ctrl+A, Esc), destination and naming options remembered in `chrome.storage.local` (`saveOptions`), and saving. |
+| `background.js` | Saves to Downloads through `chrome.downloads` and enforces the planned filenames. |
+| `filenames.js` | Numbered and original filenames, and the sanitized project folder name. Loaded by `background.js` (`importScripts`) and `downloader.html`. |
+| `ui.css` / `ui.js` | Shared tokens (warm monochrome, light and dark), the bundled Instrument Sans face, the primary button with its progress fill, and `setLabel()`, which blurs in only the characters that changed. |
 
 ## Scan pipeline
 
-1. The popup injects `scanner.js` into the active Behance tab.
+1. The popup injects `scanner.js` into the active Behance tab with one `executeScript` call.
 2. The scanner reads every rendered `img` and `source` element in DOM order, including `srcset` and lazy-load attributes.
 3. Only URLs under `/project_modules/` count; recommendation covers (`/projects/`) and avatars (`/user/`) are skipped by path.
-4. Network resource entries are considered only when they match an image already found in a project module; this lets the scanner upgrade an image to a better CDN size without adding unrelated page assets.
-5. Variants are grouped by their asset filename. The largest variant wins: `source`, then the width in the size segment (`max_3840`, `fs` = 1920, `1400`, `disp` = 600).
+4. Network resource entries are added only for images already found, which can supply a larger variant.
+5. Variants are grouped by asset filename and ranked by the width in the size segment (`source`, `max_3840`, `fs` = 1920, `1400`, `disp` = 600). The largest is saved; the smallest at least 600 wide is the preview.
+6. The aspect ratio comes from the rendered image (`naturalWidth`/`naturalHeight`, else its `width`/`height` attributes; 4:5 when unknown).
 
-## Download modes
+## Picker page
 
-### Quick mode
+Tiles get their aspect ratio before the preview loads, so the masonry layout is computed once (each tile into the shortest column) and nothing shifts while images arrive. Unloaded tiles show a shimmer; loaded previews fade in. The layout is recomputed only when the column count changes.
 
-The popup sends the scan result to `background.js`. The service worker uses `chrome.downloads.download()` to save each URL in the standard Chrome Downloads location. `onDeterminingFilename` applies either the numbered or original filename option.
+## Saving
 
-### Folder mode
+Images are numbered in project order among the selected ones, so picking 12 images gives `image 01` to `image 12`.
 
-The popup stores the scan result in `chrome.storage.session` and opens `downloader.html`. That page calls `showDirectoryPicker({ mode: "readwrite" })` after the user clicks **Save images to…**, then starts writing right away. It fetches each image and writes its blob to the selected `FileSystemDirectoryHandle`.
+- **Downloads:** the page sends the selected images to `background.js`, which calls `chrome.downloads.download()` for each. `onDeterminingFilename` applies the planned name.
+- **Any folder:** `showDirectoryPicker()` runs on the save click and saving starts at once, four images at a time. Each response body is piped straight into the file's writable stream. Failed images are marked on their tiles and can be retried into the same folder. Existing files are never overwritten; a collision becomes `image 01 (1).jpg`.
 
-Folder mode does not overwrite existing files. A collision becomes `image 1 (1).jpg`, for example.
-
-## Naming
-
-With the project-folder toggle on (the default), both modes save into a subfolder named after the project title (`og:title`, sanitized for Windows). Quick mode puts it under Downloads; folder mode creates it inside the chosen folder. Numbered names are zero-padded to the image count, so `image 01.jpg` sorts before `image 10.jpg`.
-
-With the original-name toggle off, names are `image 1.ext`, `image 2.ext`, and so on. With it on, the extension uses the final filename segment from the Behance CDN URL. Both modes preserve the image order returned by the scanner.
+With **Project folder** on (the default), both destinations use a subfolder named after the project title (`og:title`, sanitized for Windows).
 
 ## Validation
 
@@ -48,6 +44,7 @@ node --check scanner.js
 node --check downloader.js
 node --check filenames.js
 node --check background.js
+node --check ui.js
 ```
 
-Then reload the unpacked extension in Chrome and manually test one Behance project in both download modes.
+Then reload the unpacked extension in Chrome and test one Behance project with both destinations.

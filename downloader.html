@@ -9,17 +9,38 @@
     <link rel="stylesheet" href="downloader.css">
   </head>
   <body>
-    <main>
-      <header>
+    <header class="bar">
+      <div class="top">
         <div class="heading">
           <h1 id="title">Behance images</h1>
           <p id="status" class="status" role="status">&nbsp;</p>
         </div>
-        <button id="save" class="primary" type="button">
-          <svg class="check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 8.5 3 3 6-7"/></svg>
-          <span class="label">Save images to…</span>
-        </button>
-      </header>
+        <div class="actions">
+          <fieldset class="segmented">
+            <legend class="visually-hidden">Save to</legend>
+            <label><input type="radio" name="destination" value="downloads" checked><span>Downloads</span></label>
+            <label><input type="radio" name="destination" value="folder"><span>Any folder</span></label>
+            <span class="thumb" aria-hidden="true"></span>
+          </fieldset>
+          <button id="save" class="primary" type="button" disabled>
+            <svg class="check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 8.5 3 3 6-7"/></svg>
+            <span class="label"></span>
+          </button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <label class="select-all">
+          <input id="select-all" type="checkbox" checked>
+          Select all
+          <span id="count" class="count"></span>
+        </label>
+        <div class="options">
+          <label class="switch"><input id="project-folder" type="checkbox" role="switch" checked> Project folder</label>
+          <label class="switch"><input id="keep-original" type="checkbox" role="switch"> Original file names</label>
+        </div>
+      </div>
+    </header>
+    <main>
       <div id="grid" class="grid"></div>
     </main>
     <script src="filenames.js"></script>

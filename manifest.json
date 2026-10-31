@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Behance Project Image Downloader",
-  "version": "1.4.0",
-  "description": "Downloads unique Behance project module images from the current project page.",
+  "version": "1.5.0",
+  "description": "Pick images from a Behance project and save them in order, at full size.",
   "permissions": ["activeTab", "scripting", "storage", "downloads"],
   "host_permissions": [
     "https://*.behance.net/*"

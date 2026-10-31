@@ -1,37 +1,50 @@
 /* Shared by popup.html and downloader.html. */
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("fonts/InstrumentSans-latin.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: block;
+}
+
+/* Warm neutrals, one ink colour. Every step has a job:
+   bg page, surface wells and controls, raised the thing on top,
+   fg text and the primary action, muted secondary text. */
 :root {
   color-scheme: light dark;
-  --bg: #fafafa;
-  --surface: #efefef;
-  --raised: #ffffff;
-  --fg: #141414;
-  --muted: #6e6e6e;
-  --hairline: rgb(0 0 0 / 0.09);
-  --track: #d6d6d6;
-  --knob: #ffffff;
+  --bg: #f4f3ef;
+  --surface: #e8e6e0;
+  --raised: #fdfcfa;
+  --fg: #1b1a18;
+  --muted: #77746c;
+  --hairline: rgb(27 26 24 / 0.1);
+  --track: #d3d0c8;
+  --knob: #fdfcfa;
+  --shimmer: rgb(255 255 255 / 0.55);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: "Instrument Sans", system-ui, sans-serif;
+  font-size: 13px;
   -webkit-font-smoothing: antialiased;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #141414;
-    --surface: #222222;
-    --raised: #333333;
-    --fg: #f2f2f2;
-    --muted: #9c9c9c;
-    --hairline: rgb(255 255 255 / 0.09);
-    --track: #3d3d3d;
-    --knob: #a8a8a8;
+    --bg: #131312;
+    --surface: #1e1d1b;
+    --raised: #2b2a27;
+    --fg: #ecebe6;
+    --muted: #8f8c84;
+    --hairline: rgb(236 235 230 / 0.09);
+    --track: #3b3a36;
+    --knob: #9a978f;
+    --shimmer: rgb(255 255 255 / 0.05);
   }
 }
 
 body { margin: 0; background: var(--bg); color: var(--fg); }
-h1 { margin: 0; font-weight: 600; text-wrap: balance; }
+h1 { margin: 0; font-weight: 600; letter-spacing: -0.015em; text-wrap: balance; }
 p { margin: 0; }
 
-.status { color: var(--muted); font-size: 13px; line-height: 1.4; font-variant-numeric: tabular-nums; text-wrap: pretty; }
+.status { color: var(--muted); line-height: 1.45; font-variant-numeric: tabular-nums; text-wrap: pretty; }
 
 .primary {
   position: relative;
@@ -39,24 +52,21 @@ p { margin: 0; }
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 40px;
+  height: 36px;
   padding: 0 16px;
   overflow: hidden;
   border: 0;
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--fg);
   color: var(--bg);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1;
+  font: inherit;
+  font-weight: 550;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   cursor: pointer;
 }
 .primary:disabled { opacity: 0.4; cursor: default; }
 .primary[aria-disabled="true"] { cursor: default; }
-.primary[data-tone="quiet"] { background: var(--surface); color: var(--fg); }
 .primary:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
 
 /* Progress: a soft fill sweeping inside the button, up to its rim. */
@@ -70,7 +80,7 @@ p { margin: 0; }
   pointer-events: none;
 }
 .primary .label, .primary .check { position: relative; }
-.primary .check { display: none; width: 16px; height: 16px; }
+.primary .check { display: none; width: 15px; height: 15px; }
 .primary[data-state="done"] .check { display: block; }
 
 .char { display: inline-block; white-space: pre; }
@@ -86,6 +96,10 @@ p { margin: 0; }
 @keyframes soft-in {
   from { opacity: 0; filter: blur(4px); transform: translateY(3px) scale(0.9); }
 }
+
+.logo-tile { fill: var(--fg); }
+.logo-mark { fill: var(--bg); stroke: var(--bg); }
+.logo-mark rect { stroke: none; }
 
 .visually-hidden {
   position: absolute;
